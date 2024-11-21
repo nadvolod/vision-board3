@@ -23,26 +23,19 @@ type Goal = {
   title: string;
 };
 
+const createInitialGoals = (): Goal[] =>
+  Array(6)
+    .fill(null)
+    .map((_, index) => ({
+      id: index,
+      imageUrl: `/api/placeholder/400/400`,
+      description: "Click to edit your goal description",
+      deadline: "2024-12-31",
+      title: `Goal ${index + 1}`,
+    }));
+
 const VisionBoard = () => {
-  const createInitialGoals = () =>
-    Array(9)
-      .fill(null)
-      .map((_, index) => ({
-        id: index,
-        imageUrl: `/api/placeholder/400/400`,
-        description: "Click to edit your goal description",
-        deadline: "2024-12-31",
-        title: `Goal ${index + 1}`,
-      }));
-
-  const [goals, setGoals] = useState<Goal[]>(() => {
-    if (typeof window !== "undefined") {
-      const saved = localStorage.getItem("visionBoardGoals");
-      return saved ? JSON.parse(saved) : createInitialGoals();
-    }
-    return createInitialGoals();
-  });
-
+  const [goals, setGoals] = useState<Goal[]>([]);
   const [selectedGoal, setSelectedGoal] = useState<number | null>(null);
   const [editingGoal, setEditingGoal] = useState<Goal | null>(null);
   const [isEditing, setIsEditing] = useState(false);
@@ -50,7 +43,12 @@ const VisionBoard = () => {
   const [draggedGoal, setDraggedGoal] = useState<number | null>(null);
 
   useEffect(() => {
-    if (typeof window !== "undefined") {
+    const savedGoals = localStorage.getItem("visionBoardGoals");
+    setGoals(savedGoals ? JSON.parse(savedGoals) : createInitialGoals());
+  }, []);
+
+  useEffect(() => {
+    if (goals.length > 0) {
       localStorage.setItem("visionBoardGoals", JSON.stringify(goals));
     }
   }, [goals]);
@@ -99,6 +97,11 @@ const VisionBoard = () => {
     const file = event.target.files?.[0];
     if (!file || uploadingForId === null) return;
 
+    if (!file.type.startsWith("image/")) {
+      alert("Please upload an image file");
+      return;
+    }
+
     const reader = new FileReader();
     reader.onloadend = () => {
       const base64String = reader.result as string;
@@ -110,10 +113,6 @@ const VisionBoard = () => {
         )
       );
       setUploadingForId(null);
-
-      if (editingGoal && editingGoal.id === uploadingForId) {
-        setEditingGoal({ ...editingGoal, imageUrl: base64String });
-      }
     };
     reader.readAsDataURL(file);
   };
@@ -144,65 +143,76 @@ const VisionBoard = () => {
           My Vision Board
         </motion.h1>
 
+        {/* File input placed before the grid */}
+        <input
+          type="file"
+          accept="image/*"
+          className="hidden"
+          id="imageUpload"
+          onChange={handleImageUpload}
+        />
+
         <motion.div
           className="grid grid-cols-3 gap-6"
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
         >
-          {goals.map((goal, index) => (
-            <motion.div
-              key={goal.id}
-              draggable
-              onDragStart={(e) => handleDragStart(e, goal.id)}
-              onDragEnd={handleDragEnd}
-              onDragOver={handleDragOver}
-              onDrop={(e) => handleDrop(e, goal.id)}
-              initial={{ opacity: 0, scale: 0.9 }}
-              animate={{ opacity: 1, scale: 1 }}
-              transition={{ delay: index * 0.1 }}
-              className={`relative group rounded-xl overflow-hidden shadow-lg bg-white cursor-move
-                ${draggedGoal === goal.id ? "opacity-50" : "opacity-100"}
-              `}
-            >
-              <div
-                className="aspect-square relative"
-                onClick={() => setSelectedGoal(goal.id)}
+          {goals.map(
+            ({ id, imageUrl, title, deadline, description }, index) => (
+              <motion.div
+                key={id}
+                draggable
+                onDragStart={(e) => handleDragStart(e, id)}
+                onDragEnd={handleDragEnd}
+                onDragOver={handleDragOver}
+                onDrop={(e) => handleDrop(e, id)}
+                initial={{ opacity: 0, scale: 0.9 }}
+                animate={{ opacity: 1, scale: 1 }}
+                transition={{ delay: index * 0.1 }}
+                className={`relative group rounded-xl overflow-hidden shadow-lg bg-white cursor-move
+               ${draggedGoal === id ? "opacity-50" : "opacity-100"}
+             `}
               >
-                <img
-                  src={goal.imageUrl}
-                  alt={goal.title}
-                  className="w-full h-full object-cover transition-transform group-hover:scale-105"
-                />
-                <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
-                <div className="absolute bottom-0 left-0 right-0 p-4 transform translate-y-4 group-hover:translate-y-0 transition-transform duration-300">
-                  <h3 className="font-semibold text-white text-lg">
-                    {goal.title}
-                  </h3>
-                  <p className="text-white/80 text-sm">Due: {goal.deadline}</p>
+                <div
+                  className="aspect-square relative"
+                  onClick={() => setSelectedGoal(id)}
+                >
+                  <img
+                    src={imageUrl}
+                    alt={title}
+                    className="w-full h-full object-cover transition-transform group-hover:scale-105"
+                  />
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+                  <div className="absolute bottom-0 left-0 right-0 p-4 transform translate-y-4 group-hover:translate-y-0 transition-transform duration-300">
+                    <h3 className="font-semibold text-white text-lg">
+                      {title}
+                    </h3>
+                    <p className="text-white/80 text-sm">Due: {deadline}</p>
+                  </div>
                 </div>
-              </div>
 
-              <div className="absolute top-2 left-2 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-                <GripHorizontal className="h-6 w-6 text-white drop-shadow-lg" />
-              </div>
+                <div className="absolute top-2 left-2 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+                  <GripHorizontal className="h-6 w-6 text-white drop-shadow-lg" />
+                </div>
 
-              <Button
-                variant="ghost"
-                size="icon"
-                className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity duration-300"
-                onClick={(e) => {
-                  e.stopPropagation();
-                  setUploadingForId(goal.id);
-                  document.getElementById("imageUpload")?.click();
-                }}
-              >
-                <Upload className="h-4 w-4 text-white drop-shadow-lg" />
-              </Button>
-            </motion.div>
-          ))}
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="absolute top-2 right-2 bg-white/50 opacity-0 group-hover:opacity-100 transition-all duration-300 hover:bg-white/75"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setUploadingForId(id);
+                    document.getElementById("imageUpload")?.click();
+                  }}
+                >
+                  <Upload className="h-4 w-4 text-black" />
+                </Button>
+              </motion.div>
+            )
+          )}
         </motion.div>
 
-        {/* Full Screen View Dialog */}
+        {/* Dialogs */}
         <Dialog
           open={selectedGoal !== null}
           onOpenChange={() => setSelectedGoal(null)}
@@ -315,7 +325,6 @@ const VisionBoard = () => {
           </DialogContent>
         </Dialog>
 
-        {/* Edit Dialog */}
         <Dialog open={isEditing} onOpenChange={setIsEditing}>
           <DialogContent className="max-w-md">
             <motion.div
@@ -391,15 +400,6 @@ const VisionBoard = () => {
             </motion.div>
           </DialogContent>
         </Dialog>
-
-        {/* Hidden file input for image upload */}
-        <input
-          type="file"
-          accept="image/*"
-          className="hidden"
-          id="imageUpload"
-          onChange={handleImageUpload}
-        />
       </div>
     </div>
   );
