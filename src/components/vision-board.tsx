@@ -170,11 +170,11 @@ const VisionBoard = () => {
                 animate={{ opacity: 1, scale: 1 }}
                 transition={{ delay: index * 0.1 }}
                 className={`relative group rounded-xl overflow-hidden shadow-lg bg-white cursor-move
-               ${draggedGoal === id ? "opacity-50" : "opacity-100"}
-             `}
+       ${draggedGoal === id ? "opacity-50" : "opacity-100"}
+     `}
               >
                 <div
-                  className="aspect-square relative"
+                  className="aspect-square relative group"
                   onClick={() => setSelectedGoal(id)}
                 >
                   <img
@@ -182,12 +182,15 @@ const VisionBoard = () => {
                     alt={title}
                     className="w-full h-full object-cover transition-transform group-hover:scale-105"
                   />
-                  <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
-                  <div className="absolute bottom-0 left-0 right-0 p-4 transform translate-y-4 group-hover:translate-y-0 transition-transform duration-300">
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent transition-opacity duration-300" />
+                  <div className="absolute bottom-0 left-0 right-0 p-4">
                     <h3 className="font-semibold text-white text-lg">
                       {title}
                     </h3>
                     <p className="text-white/80 text-sm">Due: {deadline}</p>
+                    <p className="text-white/60 text-sm mt-1 line-clamp-2">
+                      {description}
+                    </p>
                   </div>
                 </div>
 
