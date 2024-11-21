@@ -13,6 +13,7 @@ import {
   Upload,
   X,
 } from "lucide-react";
+import Link from "next/link";
 import React, { useEffect, useState } from "react";
 
 type Goal = {
@@ -135,13 +136,20 @@ const VisionBoard = () => {
   return (
     <div className="min-h-screen bg-gradient-to-br from-purple-50 to-blue-50 p-8">
       <div className="max-w-6xl mx-auto">
-        <motion.h1
-          initial={{ opacity: 0, y: -20 }}
-          animate={{ opacity: 1, y: 0 }}
-          className="text-4xl font-bold mb-8 text-center bg-clip-text text-transparent bg-gradient-to-r from-purple-600 to-blue-600"
-        >
-          My Vision Board
-        </motion.h1>
+        <div className="flex justify-between items-center mb-8">
+          <motion.h1
+            initial={{ opacity: 0, y: -20 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="text-4xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-purple-600 to-blue-600"
+          >
+            My Vision Board
+          </motion.h1>
+          <Link href="/morning-review">
+            <Button className="bg-gradient-to-r from-purple-600 to-blue-600 text-white">
+              Morning Review →
+            </Button>
+          </Link>
+        </div>
 
         {/* File input placed before the grid */}
         <input
@@ -170,8 +178,8 @@ const VisionBoard = () => {
                 animate={{ opacity: 1, scale: 1 }}
                 transition={{ delay: index * 0.1 }}
                 className={`relative group rounded-xl overflow-hidden shadow-lg bg-white cursor-move
-       ${draggedGoal === id ? "opacity-50" : "opacity-100"}
-     `}
+               ${draggedGoal === id ? "opacity-50" : "opacity-100"}
+             `}
               >
                 <div
                   className="aspect-square relative group"
